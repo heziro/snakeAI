@@ -79,6 +79,13 @@ class Snake():
                         collideFlag = True
         return collideFlag
 
+    def getSnakePlaces(self):
+        places = [[], []]
+        for block in self.body:
+            places[0].append(block.x)
+            places[1].append(block.y)
+        return places
+
 
 class Food():
     def __init__(self, gameWindow, mapSize, blockSize):
@@ -92,9 +99,12 @@ class Food():
         pygame.draw.rect(self.gameWindow, (255, 0, 0),
                          (self.x, self.y, self.blockSize, self.blockSize), 0)
 
-    def new(self):
+    def new(self, takenPlaces):
         self.x = random.randint(0, self.mapSize[0]-1)*self.blockSize
         self.y = random.randint(0, self.mapSize[1]-1)*self.blockSize
+        while self.x in takenPlaces[0] and self.y in takenPlaces[1]:
+            self.x = random.randint(0, self.mapSize[0]-1)*self.blockSize
+            self.y = random.randint(0, self.mapSize[1]-1)*self.blockSize
 
 
 class Map():
@@ -103,7 +113,7 @@ class Map():
         self.mapSize = mapSize
         self.blockSize = blockSize
         self.food = Food(self.gameWindow, self.mapSize, self.blockSize)
-        self.food.new()
+        self.food.new([[], []])
 
     def draw(self):
         # draw grid
@@ -123,14 +133,14 @@ class Map():
         # draw food
         self.food.draw()
 
-    def newFood(self):
-        self.food.new()
+    def newFood(self, takenPlaces):
+        self.food.new(takenPlaces)
 
 
 def main():
     # parameters:
-    blockSize = 20
-    mapSize = (50, 30)
+    blockSize = 30
+    mapSize = (30, 30)
     foodEaten = False
 
     # game variables
@@ -158,13 +168,13 @@ def main():
                 direction = "right"
             if keys[pygame.K_LEFT]:
                 direction = "left"
-        clock.tick(8)
+        clock.tick(10)
         foodEaten = snake.move(direction, map.food.x, map.food.y)
         if direction != "none" and foodEaten == False:
             if snake.collide() == True:
                 playFlag = False
         if foodEaten:
-            map.newFood()
+            map.newFood(snake.getSnakePlaces())
             foodEaten = False
         map.draw()
         snake.draw()
